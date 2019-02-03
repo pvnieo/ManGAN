@@ -48,9 +48,9 @@ class ColorizationCycleGAN(nn.Module):
             self.D_B2A.cuda()
 
         # Define Losses
-        self.criterion_gan = nn.MSELoss()
-        self.criterion_cycle = nn.L1Loss()
-        self.criterion_idt = nn.L1Loss()
+        self.criterion_gan = nn.MSELoss().cuda()
+        self.criterion_cycle = nn.L1Loss().cuda()
+        self.criterion_idt = nn.L1Loss().cuda()
 
         # Define optimizers
         self.optimizer_G = torch.optim.Adam(chain(self.G_A2B.parameters(),
@@ -68,10 +68,10 @@ class ColorizationCycleGAN(nn.Module):
 
         # Inputs & targets memory allocation
         Tensor = FloatTensor if not args.no_cuda else torch.Tensor
-        self.input_A = Tensor(args.batch_size, args.input_nc, args.size, args.size)
-        self.input_B = Tensor(args.batch_size, args.output_nc, args.size, args.size)
-        self.target_real = Variable(Tensor([[args.batch_size]]).fill_(1.0), requires_grad=False)  # To be changed
-        self.target_fake = Variable(Tensor([[args.batch_size]]).fill_(0.0), requires_grad=False)  # To be changed
+        self.input_A = Tensor(args.batch_size, args.input_nc, args.size, args.size).cuda()  # To be changed
+        self.input_B = Tensor(args.batch_size, args.output_nc, args.size, args.size).cuda()  # To be changed
+        self.target_real = Variable(Tensor([[args.batch_size]]).fill_(1.0), requires_grad=False).cuda()  # To be changed
+        self.target_fake = Variable(Tensor([[args.batch_size]]).fill_(0.0), requires_grad=False).cuda()  # To be changed
 
         # Init networks
         # if args.train:
@@ -106,8 +106,8 @@ class ColorizationCycleGAN(nn.Module):
 
     def backward_G(self):
         # Identity loss
-        loss_id_A = self.criterion_idt(self.real_A, self.same_A) * 5
-        loss_id_B = self.criterion_idt(self.real_B, self.same_B) * 5
+        loss_id_A = self.criterion_idt(self.same_A, self.real_A) * 5
+        loss_id_B = self.criterion_idt(self.same_B, self.real_B) * 5
 
         # GAN loss
         loss_gan_A2B = self.criterion_gan(self.D_A2B(self.fake_B), self.target_real)
@@ -150,16 +150,18 @@ class ColorizationCycleGAN(nn.Module):
 
     def fit(self, batch):
         # Set model input
-        self.real_A = Variable(self.input_A.copy_(batch['A']))
-        self.real_B = Variable(self.input_B.copy_(batch['B']))
+        self.real_A = Variable(self.input_A.copy_(batch['A'])).cuda()
+        self.real_B = Variable(self.input_B.copy_(batch['B'])).cuda()
 
         # forward pass
         self.forward()
 
         # Backpropagate G
+        self.set_requires_grad([self.D_A2B, self.D_B2A], False)
         self.optimizer_G.zero_grad()
         self.backward_G()
         self.optimizer_G.step()
+        self.set_requires_grad([self.D_A2B, self.D_B2A], True)
 
         # Backpropagate D
         self.optimizer_D.zero_grad()
@@ -176,3 +178,9 @@ class ColorizationCycleGAN(nn.Module):
             net = getattr(self, name)
             save(net.state_dict(), path.format(name))
             save(net.state_dict(), path_latest.format(name))
+
+    def set_requires_grad(self, nets, requires_grad=False):
+        for net in nets:
+            if net is not None:
+                for param in net.parameters():
+                    param.requires_grad = requires_grad

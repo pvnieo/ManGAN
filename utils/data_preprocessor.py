@@ -110,6 +110,7 @@ parser.add_argument('-d', '--data-dir', required=False, default="datasets/test",
 parser.add_argument('--name', type=str, default='experiment_name', help='name of the experiment')
 parser.add_argument('--type', type=int, choices=[1, 2], default=1, help='1: containing A|B, 2: contains only photos')
 parser.add_argument('--size', type=int, default=256, help='size of the data crop (squared assumed)')
+parser.add_argument('--ratio', type=float, default=0.9, help='size of the data crop (squared assumed)')
 args = parser.parse_args()
 
 if __name__ == '__main__':

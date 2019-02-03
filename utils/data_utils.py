@@ -15,6 +15,7 @@ from PIL import Image
 # ----------------- Data Loader -----------------
 class ImageDataset(Dataset):
     def __init__(self, root, _transforms=None, unaligned=False, mode='train'):
+        super().__init__()
         self.transform = transforms.Compose(_transforms)
         self.unaligned = unaligned
 
