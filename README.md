@@ -4,6 +4,8 @@ Automatic Manga colorization using Generative Adversarial Networks.
 This project aims to color manga using GANs. For the moment, two types of GANs have been tested: [pix2pix](https://arxiv.org/pdf/1611.07004.pdf) and [cycle-gan](https://arxiv.org/pdf/1703.10593.pdf).
 In this repo, we implemented cycle-gan in pytorch.
 
+**Project Report:** [here](https://www.researchgate.net/publication/331175026_Manga_Colorization_using_Generative_Adversarial_Nets)
+
 Some of the results obtained are displayed in the following image:
 ![Rusults](/assets/exp2.jpeg)
 
